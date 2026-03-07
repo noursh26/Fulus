@@ -1,15 +1,12 @@
 // lib/screens/home_screen.dart
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../models/models.dart';
 import '../providers/app_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
 import 'add_transaction_screen.dart';
 import 'transaction_details_screen.dart';
-import 'account_details_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});

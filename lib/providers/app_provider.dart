@@ -1,7 +1,6 @@
 // lib/providers/app_provider.dart
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
 import '../utils/database.dart';
 
@@ -223,7 +222,6 @@ class AppProvider extends ChangeNotifier {
   }
 
   // ── Helpers ───────────────────────────────────────────
-  Account? accountById(String id) => accounts.where((a) => a.id == id).firstOrNull;
   double spentForCategory(String catId) =>
       monthlyTransactions.where((t) => t.type == TransactionType.expense && t.categoryId == catId)
           .fold(0, (s, t) => s + t.amount);

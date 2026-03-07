@@ -84,8 +84,14 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                 ),
                 color: AppTheme.darkCard,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                itemBuilder: (_) => [
+                onSelected: (value) {
+                  if (value == 'toggle_hidden') _toggleHidden(p);
+                  if (value == 'toggle_archive') _toggleArchive(p);
+                  if (value == 'delete') _confirmDelete(context, p);
+                },
+                itemBuilder: (_) => <PopupMenuEntry<String>>[
                   PopupMenuItem(
+                    value: 'toggle_hidden',
                     child: Row(
                       children: [
                         Icon(
@@ -99,9 +105,9 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                         Text(_account.isHiddenFromTotal ? 'إظهار في المجموع' : 'إخفاء من المجموع'),
                       ],
                     ),
-                    onTap: () => _toggleHidden(p),
                   ),
                   PopupMenuItem(
+                    value: 'toggle_archive',
                     child: Row(
                       children: [
                         Icon(
@@ -115,20 +121,16 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                         Text(_account.isArchived ? 'إلغاء الأرشفة' : 'أرشفة الحساب'),
                       ],
                     ),
-                    onTap: () => _toggleArchive(p),
                   ),
                   const PopupMenuDivider(),
                   PopupMenuItem(
+                    value: 'delete',
                     child: Row(
                       children: const [
                         Icon(Icons.delete_rounded, size: 20, color: AppTheme.red),
                         SizedBox(width: 12),
                         Text('حذف الحساب', style: TextStyle(color: AppTheme.red)),
                       ],
-                    ),
-                    onTap: () => Future.delayed(
-                      Duration.zero,
-                      () => _confirmDelete(context, p),
                     ),
                   ),
                 ],
@@ -442,8 +444,6 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
     final nameCtrl = TextEditingController(text: _account.name);
     final noteCtrl = TextEditingController(text: _account.note);
     var selectedType = _account.accountType;
-    var selectedColor = _account.colorValue;
-    var selectedIcon = _account.icon;
 
     showModalBottomSheet(
       context: ctx,

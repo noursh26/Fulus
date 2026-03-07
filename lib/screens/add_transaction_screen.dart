@@ -1,9 +1,7 @@
 // lib/screens/add_transaction_screen.dart
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import '../models/models.dart';
 import '../providers/app_provider.dart';
 import '../theme/app_theme.dart';
