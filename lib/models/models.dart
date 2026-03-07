@@ -32,7 +32,7 @@ class Currency {
   }
 }
 
-const List<Currency> kCurrencies = [
+final List<Currency> kCurrencies = [
   Currency(code: 'USD', symbol: r'$', nameAr: 'دولار أمريكي', nameEn: 'US Dollar', flag: '🇺🇸', rateToUSD: 1.0),
   Currency(code: 'EUR', symbol: '€', nameAr: 'يورو', nameEn: 'Euro', flag: '🇪🇺', rateToUSD: 0.92),
   Currency(code: 'SYP', symbol: 'SYP', nameAr: 'ليرة سورية', nameEn: 'Syrian Pound', flag: '🇸🇾', decimalDigits: 0, rateToUSD: 13000.0),
@@ -52,7 +52,7 @@ const List<Currency> kCurrencies = [
   Currency(code: 'DZD', symbol: 'د.ج', nameAr: 'دينار جزائري', nameEn: 'Algerian Dinar', flag: '🇩🇿', rateToUSD: 135.0),
   Currency(code: 'TND', symbol: 'د.ت', nameAr: 'دينار تونسي', nameEn: 'Tunisian Dinar', flag: '🇹🇳', rateToUSD: 3.1),
   Currency(code: 'LYD', symbol: 'د.ل', nameAr: 'دينار ليبي', nameEn: 'Libyan Dinar', flag: '🇱🇾', rateToUSD: 4.85),
-  Currency(code: 'SDG', symbol: 'ج.س', nameAr: 'جنيه سوداني', nameEn: 'Sudanese Pound', flag: '��🇩', rateToUSD: 601.0),
+  Currency(code: 'SDG', symbol: 'ج.س', nameAr: 'جنيه سوداني', nameEn: 'Sudanese Pound', flag: String.fromCharCodes([0x1F1F8, 0x1F1E9]), rateToUSD: 601.0),
   Currency(code: 'YER', symbol: 'ر.ي', nameAr: 'ريال يمني', nameEn: 'Yemeni Rial', flag: '🇾🇪', decimalDigits: 0, rateToUSD: 250.0),
   Currency(code: 'INR', symbol: '₹', nameAr: 'روبية هندية', nameEn: 'Indian Rupee', flag: '🇮🇳', rateToUSD: 83.0),
   Currency(code: 'PKR', symbol: 'Rs', nameAr: 'روبية باكستانية', nameEn: 'Pakistani Rupee', flag: '🇵🇰', rateToUSD: 278.0),
@@ -60,8 +60,8 @@ const List<Currency> kCurrencies = [
   Currency(code: 'JPY', symbol: '¥', nameAr: 'ين ياباني', nameEn: 'Japanese Yen', flag: '🇯🇵', decimalDigits: 0, rateToUSD: 149.0),
   Currency(code: 'RUB', symbol: '₽', nameAr: 'روبل روسي', nameEn: 'Russian Ruble', flag: '🇷🇺', rateToUSD: 92.0),
   Currency(code: 'CHF', symbol: 'CHF', nameAr: 'فرنك سويسري', nameEn: 'Swiss Franc', flag: '🇨🇭', rateToUSD: 0.88),
-  Currency(code: 'CAD', symbol: 'C$', nameAr: 'دولار كندي', nameEn: 'Canadian Dollar', flag: '🇨🇦', rateToUSD: 1.36),
-  Currency(code: 'AUD', symbol: 'A$', nameAr: 'دولار أسترالي', nameEn: 'Australian Dollar', flag: '🇦🇺', rateToUSD: 1.53),
+  Currency(code: 'CAD', symbol: 'C\$', nameAr: 'دولار كندي', nameEn: 'Canadian Dollar', flag: String.fromCharCodes([0x1F1E8, 0x1F1E6]), rateToUSD: 1.36),
+  Currency(code: 'AUD', symbol: 'A\$', nameAr: 'دولار أسترالي', nameEn: 'Australian Dollar', flag: String.fromCharCodes([0x1F1E6, 0x1F1FA]), rateToUSD: 1.53),
 ];
 
 Currency currencyByCode(String code) =>
