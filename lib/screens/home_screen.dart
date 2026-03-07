@@ -47,7 +47,7 @@ class HomeScreen extends StatelessWidget {
                 child: Row(children: [
                   _QuickAction(icon: Icons.add_rounded, label: 'إضافة', color: AppTheme.green,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddTransactionScreen()))),
-                  _QuickAction(icon: Icons.swap_horiz_rounded, label: 'تحويل', color: AppTheme.blue ?? Colors.blue,
+                  _QuickAction(icon: Icons.swap_horiz_rounded, label: 'تحويل', color: const Color(0xFF60A5FA),
                     onTap: () => Navigator.pushNamed(context, '/transfer')),
                   _QuickAction(icon: Icons.track_changes_rounded, label: 'ميزانية', color: Colors.deepPurple.shade300,
                     onTap: () => Navigator.pushNamed(context, '/budget')),

@@ -354,7 +354,7 @@ class _TransferState extends State<TransferScreen> {
       body: SingleChildScrollView(padding: const EdgeInsets.all(20), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const Text('من حساب', style: TextStyle(fontSize: 12, color: Colors.white54, fontWeight: FontWeight.w700)),
         const SizedBox(height: 8),
-        DropdownButtonFormField<String>(value: _fromId, dropdownColor: const Color(0xFF1A1A24'),
+        DropdownButtonFormField<String>(value: _fromId, dropdownColor: const Color(0xFF1A1A24),
           decoration: const InputDecoration(), items: items, onChanged: (v) => setState(() => _fromId = v)),
         const SizedBox(height: 12),
         Center(child: GestureDetector(
