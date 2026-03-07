@@ -1,20 +1,74 @@
 workflows:
   android-workflow:
     name: Fulus Android Build
-    max_build_duration: 60
+    max_build_duration: 120
+    instance_type: mac_mini_m1
     environment:
+      android_signing:
+        - keystore_reference
+      groups:
+        - google_credentials
+      vars:
+        PACKAGE_NAME: "com.fulus.app"
       flutter: stable
+      java: 17
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: 'main'
+          include: true
+          source: true
     scripts:
+      - name: Set up local.properties
+        script: |
+          echo "flutter.sdk=$HOME/programs/flutter" > "$CM_BUILD_DIR/android/local.properties"
       - name: Get Flutter packages
         script: flutter pub get
-      - name: Build APK
-        script: flutter build apk --release --no-tree-shake-icons
+      - name: Run Flutter analyze
+        script: flutter analyze --no-fatal-infos
+      - name: Build APK (Debug)
+        script: flutter build apk --debug
+      - name: Build APK (Release)
+        script: flutter build apk --release
+      - name: Build App Bundle
+        script: flutter build appbundle --release
     artifacts:
       - build/**/outputs/**/*.apk
+      - build/**/outputs/**/*.aab
+      - build/**/outputs/**/mapping.txt
+      - flutter_drive.log
     publishing:
       email:
         recipients:
-          - your@email.com
+          - notifications@fulus.app
+        notify:
+          success: true
+          failure: true
+
+  ios-workflow:
+    name: Fulus iOS Build
+    max_build_duration: 120
+    instance_type: mac_mini_m1
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Get Flutter packages
+        script: flutter pub get
+      - name: Install CocoaPods dependencies
+        script: |
+          cd ios && pod install
+      - name: Build iOS
+        script: flutter build ios --release --no-codesign
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      email:
+        recipients:
+          - notifications@fulus.app
         notify:
           success: true
           failure: true

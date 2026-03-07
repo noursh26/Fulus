@@ -1,5 +1,6 @@
 // lib/widgets/shared_widgets.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
 
@@ -31,7 +32,8 @@ class SectionHeader extends StatelessWidget {
 class TxItem extends StatelessWidget {
   final Transaction tx;
   final VoidCallback? onTap;
-  const TxItem({super.key, required this.tx, this.onTap});
+  final int? index;
+  const TxItem({super.key, required this.tx, this.onTap, this.index});
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +41,7 @@ class TxItem extends StatelessWidget {
     final color = cat?.color ?? Colors.grey;
     final isIncome = tx.type == TransactionType.income;
 
-    return GestureDetector(
+    Widget item = GestureDetector(
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
@@ -80,17 +82,32 @@ class TxItem extends StatelessWidget {
             ],
           )),
           // Amount
-          Text(
-            '${isIncome ? '+' : '-'}${fmtAmount(tx.amount, tx.currency)}',
-            style: TextStyle(
-              fontSize: 15, fontWeight: FontWeight.w700,
-              color: isIncome ? AppTheme.green : AppTheme.red,
-              fontFamily: 'monospace',
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: (isIncome ? AppTheme.green : AppTheme.red).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              '${isIncome ? '+' : '-'}${fmtAmount(tx.amount, tx.currency)}',
+              style: TextStyle(
+                fontSize: 14, fontWeight: FontWeight.w700,
+                color: isIncome ? AppTheme.green : AppTheme.red,
+                fontFamily: 'monospace',
+              ),
             ),
           ),
         ]),
       ),
     );
+
+    if (index != null) {
+      return item
+          .animate()
+          .fadeIn(delay: Duration(milliseconds: 50 * (index! % 10)))
+          .slideX(begin: 0.1, end: 0, delay: Duration(milliseconds: 50 * (index! % 10)));
+    }
+    return item;
   }
 }
 
@@ -98,12 +115,13 @@ class TxItem extends StatelessWidget {
 class AccountCard extends StatelessWidget {
   final Account account;
   final VoidCallback? onTap;
-  const AccountCard({super.key, required this.account, this.onTap});
+  final int? index;
+  const AccountCard({super.key, required this.account, this.onTap, this.index});
 
   @override
   Widget build(BuildContext context) {
     final cur = currencyByCode(account.currency);
-    return GestureDetector(
+    Widget card = GestureDetector(
       onTap: onTap,
       child: Container(
         width: 170,
@@ -119,17 +137,40 @@ class AccountCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Row(
+              children: [
+                Container(
+                  width: 32, height: 32,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.account_balance_wallet_rounded, color: Colors.white, size: 18),
+                ),
+                const Spacer(),
+                Text(cur.flag, style: const TextStyle(fontSize: 18)),
+              ],
+            ),
+            const Spacer(),
             Text(account.name, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 20),
+            const SizedBox(height: 4),
             Text(
               fmtAmount(account.balance, account.currency),
-              style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700, fontFamily: 'monospace'),
+              style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800, fontFamily: 'monospace'),
             ),
-            Text('${cur.flag} ${account.currency}', style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 11)),
+            Text(account.currency, style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 11)),
           ],
         ),
       ),
     );
+
+    if (index != null) {
+      return card
+          .animate()
+          .fadeIn(delay: Duration(milliseconds: 100 * index!))
+          .scale(begin: const Offset(0.9, 0.9), delay: Duration(milliseconds: 100 * index!));
+    }
+    return card;
   }
 }
 

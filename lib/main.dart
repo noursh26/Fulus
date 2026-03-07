@@ -2,12 +2,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'providers/app_provider.dart';
 import 'theme/app_theme.dart';
 import 'screens/home_screen.dart';
 import 'screens/add_transaction_screen.dart';
 import 'screens/other_screens.dart';
 import 'screens/reports_screen.dart';
+import 'screens/settings_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,6 +46,7 @@ class FulusApp extends StatelessWidget {
         '/budget':       (_) => const BudgetScreen(),
         '/transfer':     (_) => const TransferScreen(),
         '/add':          (_) => const AddTransactionScreen(),
+        '/settings':     (_) => const SettingsScreen(),
       },
     );
   }
@@ -62,6 +65,7 @@ class _MainShellState extends State<MainShell> {
     TransactionsScreen(),
     ReportsScreen(),
     BudgetScreen(),
+    SettingsScreen(),
   ];
 
   @override
@@ -85,6 +89,7 @@ class _MainShellState extends State<MainShell> {
             NavigationDestination(icon: Icon(Icons.receipt_long_outlined), selectedIcon: Icon(Icons.receipt_long_rounded), label: 'المعاملات'),
             NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart_rounded), label: 'تقارير'),
             NavigationDestination(icon: Icon(Icons.track_changes_outlined), selectedIcon: Icon(Icons.track_changes_rounded), label: 'ميزانية'),
+            NavigationDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings_rounded), label: 'إعدادات'),
           ],
         ),
       ),

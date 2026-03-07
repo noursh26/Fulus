@@ -1,6 +1,7 @@
 // lib/screens/home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../providers/app_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
@@ -26,12 +27,9 @@ class HomeScreen extends StatelessWidget {
               title: const Text('Fulus 💰'),
               actions: [
                 IconButton(
-                  icon: Icon(p.isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded),
-                  onPressed: p.toggleTheme,
-                ),
-                IconButton(
                   icon: const Icon(Icons.account_balance_wallet_rounded),
                   onPressed: () => Navigator.pushNamed(context, '/accounts'),
+                  tooltip: 'الحسابات',
                 ),
               ],
             ),
@@ -59,20 +57,23 @@ class HomeScreen extends StatelessWidget {
               // ─── Accounts ─────────────────────────
               const SectionHeader(title: 'الحسابات', action: 'عرض الكل'),
               SizedBox(
-                height: 130,
-                child: ListView(
+                height: 140,
+                child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: [
-                    ...p.accounts.map((a) => Padding(
+                  itemCount: p.accounts.length + 1,
+                  itemBuilder: (_, i) {
+                    if (i == p.accounts.length) {
+                      return Padding(
+                        padding: const EdgeInsets.only(left: 12),
+                        child: _AddAccountBtn(onTap: () => Navigator.pushNamed(context, '/accounts')),
+                      );
+                    }
+                    return Padding(
                       padding: const EdgeInsets.only(left: 12),
-                      child: AccountCard(account: a),
-                    )),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 12),
-                      child: _AddAccountBtn(onTap: () => Navigator.pushNamed(context, '/accounts')),
-                    ),
-                  ],
+                      child: AccountCard(account: p.accounts[i], index: i),
+                    );
+                  },
                 ),
               ),
 
@@ -92,6 +93,7 @@ class HomeScreen extends StatelessWidget {
                     (_, i) => TxItem(
                       tx: p.transactions[i],
                       onTap: () => _confirmDelete(context, p, p.transactions[i]),
+                      index: i,
                     ),
                     childCount: p.transactions.take(10).length,
                   )),
@@ -166,7 +168,38 @@ class _BalanceCard extends StatelessWidget {
       boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 30, offset: const Offset(0, 10))],
     ),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('إجمالي الرصيد', style: TextStyle(fontSize: 12, color: AppTheme.gold.withOpacity(0.7), letterSpacing: 1)),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text('إجمالي الرصيد', style: TextStyle(fontSize: 12, color: AppTheme.gold.withOpacity(0.7), letterSpacing: 1)),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: (p.monthlySavings >= 0 ? AppTheme.green : AppTheme.red).withOpacity(0.15),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  p.monthlySavings >= 0 ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+                  size: 14,
+                  color: p.monthlySavings >= 0 ? AppTheme.green : AppTheme.red,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'صافي: ${fmtAmount(p.monthlySavings.abs(), cur)}',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: p.monthlySavings >= 0 ? AppTheme.green : AppTheme.red,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
       const SizedBox(height: 6),
       Text(fmtAmount(p.totalBalance, cur),
         style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w700, color: AppTheme.gold, fontFamily: 'monospace')),
@@ -177,7 +210,7 @@ class _BalanceCard extends StatelessWidget {
         Expanded(child: StatCard(label: 'مصاريف الشهر', amount: p.monthlyExpense, currency: cur, color: AppTheme.red, icon: Icons.trending_down_rounded)),
       ]),
     ]),
-  );
+  ).animate().fadeIn(duration: 400.ms).scale(begin: const Offset(0.95, 0.95), duration: 400.ms);
 }
 
 class _QuickAction extends StatelessWidget {

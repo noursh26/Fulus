@@ -1,71 +1,120 @@
-# 💰 Fulus - مدير المصاري
+# 💰 Fulus - مدير المصاري الذكي
 
-تطبيق Flutter احترافي لإدارة المصاري الشخصية.
+<p align="center">
+  <img src="https://img.shields.io/badge/Flutter-3.0+-blue?logo=flutter" alt="Flutter">
+  <img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS-green" alt="Platform">
+  <img src="https://img.shields.io/badge/License-MIT-yellow" alt="License">
+</p>
 
----
+## 📱 نظرة عامة
 
-## 🚀 كيف تبني APK بدون Android Studio — خطوة بخطوة
+**Fulus** هو تطبيق إدارة مالية شخصية احترافي مبني بـ Flutter. يساعدك على تتبع مصاريفك ودخلك، إدارة حساباتك المتعددة، وتحليل إنفاقك بطريقة سهلة وجميلة.
 
-### الخطوة 1: ارفع الكود على GitHub
+## ✨ المميزات
 
-1. اذهب إلى **github.com** وسجّل دخول
-2. اضغط **New repository**
-3. اسمه: `fulus` — اختر **Public** — اضغط **Create**
-4. ارفع كل ملفات المشروع:
-   - اضغط **Add file → Upload files**
-   - اسحب كل الملفات وارفعها
-   - اضغط **Commit changes**
+- 🏦 **إدارة حسابات متعددة** - أضف حسابات بعملات مختلفة
+- 💸 **تتبع المعاملات** - سجّل دخلك ومصاريفك بسهولة
+- 📊 **تقارير ورسوم بيانية** - تحليل شامل لإنفاقك
+- 🎯 **ميزانية شهرية** - حدد ميزانيتك وتابع التزامك بها
+- ↔️ **تحويل بين الحسابات** - مع دعم أسعار الصرف
+- 📤 **تصدير إلى Excel** - صدّر بياناتك بسهولة
+- 🌙 **الوضع الداكن** - واجهة أنيقة ومريحة للعين
+- 🌍 **دعم عملات متعددة** - USD, EUR, SYP, SAR, AED, TRY, وأكثر
 
----
+## 🚀 البدء السريع
 
-### الخطوة 2: افتح Codemagic
+### المتطلبات
+- Flutter SDK 3.0+
+- Dart SDK 3.0+
+- Android Studio / Xcode
 
-1. اذهب إلى **codemagic.io**
-2. سجّل دخول بحساب GitHub
-3. اضغط **Add application**
-4. اختر المستودع `fulus`
-5. اختر **Flutter App**
+### التثبيت
 
----
+```bash
+# استنساخ المشروع
+git clone https://github.com/your-username/fulus.git
+cd fulus
 
-### الخطوة 3: ابنِ APK
+# تثبيت التبعيات
+flutter pub get
 
-1. اضغط **Start your first build**
-2. انتظر 10-15 دقيقة ☕
-3. بعد الانتهاء اضغط **Download** على ملف `.apk`
-4. انقله لموبايلك وثبّته ✅
+# تشغيل التطبيق
+flutter run
+```
 
-> ⚠️ لازم تفعّل "تثبيت من مصادر غير معروفة" في إعدادات الأندرويد
+## 🏗️ البناء
 
----
+### Android
+```bash
+# APK للتصحيح
+flutter build apk --debug
 
-## ✨ مميزات التطبيق
+# APK للإنتاج
+flutter build apk --release
 
-| الميزة | التفاصيل |
-|--------|----------|
-| 🏦 حسابات متعددة | مع دعم 9 عملات |
-| 💸 معاملات | إيرادات ومصاريف مع 15 تصنيف |
-| 📊 تقارير | Pie Chart + Bar Chart |
-| 🎯 ميزانية | تتبع الإنفاق الشهري |
-| 🔄 تحويل | بين الحسابات مع سعر صرف |
-| 🌙 Dark Mode | واجهة داكنة/فاتحة |
-| 💾 SQLite | بيانات محفوظة محلياً |
+# App Bundle للنشر على Play Store
+flutter build appbundle --release
+```
 
----
+### iOS
+```bash
+flutter build ios --release
+```
 
 ## 📁 هيكل المشروع
 
 ```
 lib/
-├── main.dart                 # Entry point + Navigation
-├── models/models.dart        # Data models
-├── providers/app_provider.dart # State management
-├── utils/database.dart       # SQLite database
-├── theme/app_theme.dart      # Colors + Typography
-├── widgets/shared_widgets.dart # Reusable components
-└── screens/
-    ├── home_screen.dart
-    ├── add_transaction_screen.dart
-    ├── reports_screen.dart
-    └── other_screens.dart    # Accounts, Budget, Transfer, Transactions
+├── main.dart              # نقطة البداية
+├── models/
+│   └── models.dart        # النماذج (Account, Transaction, etc.)
+├── providers/
+│   └── app_provider.dart  # إدارة الحالة
+├── screens/
+│   ├── home_screen.dart
+│   ├── add_transaction_screen.dart
+│   ├── reports_screen.dart
+│   ├── settings_screen.dart
+│   └── other_screens.dart
+├── theme/
+│   └── app_theme.dart     # الثيم والألوان
+├── utils/
+│   ├── database.dart      # قاعدة البيانات SQLite
+│   └── excel_export.dart  # تصدير Excel
+└── widgets/
+    └── shared_widgets.dart # الودجات المشتركة
 ```
+
+## 🔧 البناء على Codemagic
+
+المشروع مُعد للبناء على [Codemagic](https://codemagic.io):
+
+1. اربط مستودعك على Codemagic
+2. سيتم الكشف تلقائياً عن `codemagic.yaml`
+3. ابدأ البناء!
+
+## 📦 التبعيات الرئيسية
+
+| الحزمة | الاستخدام |
+|--------|-----------|
+| `provider` | إدارة الحالة |
+| `sqflite` | قاعدة البيانات المحلية |
+| `fl_chart` | الرسوم البيانية |
+| `excel` | تصدير Excel |
+| `share_plus` | مشاركة الملفات |
+| `google_fonts` | خط Tajawal العربي |
+| `flutter_animate` | الرسوم المتحركة |
+
+## 🤝 المساهمة
+
+نرحب بمساهماتكم! يرجى فتح Issue أو Pull Request.
+
+## 📄 الرخصة
+
+هذا المشروع مرخص تحت رخصة MIT
+
+---
+
+<p align="center">
+  Made with ❤️ using Flutter
+</p>
