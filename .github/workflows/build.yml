@@ -36,63 +36,16 @@ jobs:
       - name: Build APK (Release)
         run: flutter build apk --release
 
-      - name: Upload APK
+      - name: Upload APK (Debug)
         uses: actions/upload-artifact@v4
         with:
-          name: flutter-apk
-          path: build/app/outputs/flutter-apk/*.apk
+          name: flutter-apk-debug
+          path: build/app/outputs/flutter-apk/app-debug.apk
           retention-days: 30
 
-  build-ios:
-    name: Build iOS
-    runs-on: macos-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.19.6'
-          channel: 'stable'
-          cache: true
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Build iOS
-        run: flutter build ios --release --no-codesign
-
-      - name: Upload iOS build
+      - name: Upload APK (Release)
         uses: actions/upload-artifact@v4
         with:
-          name: flutter-ios
-          path: build/ios/iphoneos/*.app
-          retention-days: 30
-
-  build-web:
-    name: Build Web
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.19.6'
-          channel: 'stable'
-          cache: true
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Build Web
-        run: flutter build web
-
-      - name: Upload Web build
-        uses: actions/upload-artifact@v4
-        with:
-          name: flutter-web
-          path: build/web
+          name: flutter-apk-release
+          path: build/app/outputs/flutter-apk/app-release.apk
           retention-days: 30
