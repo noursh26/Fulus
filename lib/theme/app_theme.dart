@@ -19,7 +19,7 @@ class AppTheme {
     scaffoldBackgroundColor: darkBg,
     colorScheme: const ColorScheme.dark(
       primary: gold, secondary: green, error: red,
-      surface: darkBg2, surfaceContainerHighest: darkCard,
+      surface: darkBg2,
     ),
     textTheme: GoogleFonts.tajawalTextTheme(ThemeData.dark().textTheme),
     appBarTheme: AppBarTheme(
@@ -28,7 +28,7 @@ class AppTheme {
       titleTextStyle: GoogleFonts.tajawal(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800),
       iconTheme: const IconThemeData(color: Colors.white70),
     ),
-    cardTheme: CardThemeData(
+    cardTheme: CardTheme(
       color: darkCard, elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),

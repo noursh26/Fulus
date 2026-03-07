@@ -84,7 +84,7 @@ class _State extends State<AddTransactionScreen> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           // ─── Type Toggle ──────────────────────────
           Container(
-            decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(14)),
+            decoration: BoxDecoration(color: AppTheme.darkCard, borderRadius: BorderRadius.circular(14)),
             padding: const EdgeInsets.all(4),
             child: Row(children: TransactionType.values.map((t) {
               final sel = _type == t;

@@ -47,7 +47,7 @@ class TxItem extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          color: AppTheme.darkCard,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: Colors.white10),
         ),
@@ -230,7 +230,7 @@ class _CategoryGridState extends State<CategoryGrid> {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             decoration: BoxDecoration(
-              color: sel ? cat.color.withOpacity(0.2) : Theme.of(context).colorScheme.surfaceContainerHighest,
+              color: sel ? cat.color.withOpacity(0.2) : AppTheme.darkCard,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: sel ? cat.color : Colors.white10, width: sel ? 1.5 : 1),
             ),
