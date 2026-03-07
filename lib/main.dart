@@ -13,6 +13,7 @@ import 'screens/reports_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/currency_converter_screen.dart';
 import 'screens/statistics_screen.dart';
+import 'screens/exchange_rates_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -71,6 +72,7 @@ class FulusApp extends StatelessWidget {
         '/settings':     (_) => const SettingsScreen(),
         '/converter':    (_) => const CurrencyConverterScreen(),
         '/statistics':   (_) => const StatisticsScreen(),
+        '/exchange-rates': (_) => const ExchangeRatesScreen(),
       },
     );
   }

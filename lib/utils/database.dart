@@ -140,4 +140,37 @@ class DB {
   }
   static Future<void> insertTransfer(m.Transfer t) async =>
       (await instance).insert('transfers', t.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+
+  // ── Exchange Rates ─────────────────────────────────────
+  static Future<Map<String, double>> getExchangeRates() async {
+    final db = await instance;
+    final maps = await db.query('exchange_rates');
+    final rates = <String, double>{};
+    for (var m in maps) {
+      final key = '${m['fromCurrency']}_${m['toCurrency']}';
+      rates[key] = (m['rate'] as num).toDouble();
+    }
+    return rates;
+  }
+  
+  static Future<void> setExchangeRate(String from, String to, double rate) async {
+    final db = await instance;
+    await db.insert('exchange_rates', {
+      'id': '${from}_$to',
+      'fromCurrency': from,
+      'toCurrency': to,
+      'rate': rate,
+      'updatedAt': DateTime.now().millisecondsSinceEpoch,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+  
+  static Future<void> deleteExchangeRate(String from, String to) async {
+    final db = await instance;
+    await db.delete('exchange_rates', where: 'id=?', whereArgs: ['${from}_$to']);
+  }
+  
+  static Future<void> clearExchangeRates() async {
+    final db = await instance;
+    await db.delete('exchange_rates');
+  }
 }

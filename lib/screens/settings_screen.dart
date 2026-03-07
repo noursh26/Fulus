@@ -147,6 +147,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 12),
           _ActionCard(
+            icon: Icons.tune_rounded,
+            iconColor: AppTheme.orange,
+            title: 'أسعار الصرف المخصصة',
+            subtitle: p.customExchangeRates.isEmpty 
+                ? 'استخدم الأسعار الافتراضية'
+                : '${p.customExchangeRates.length} سعر مخصص',
+            onTap: () => Navigator.pushNamed(context, '/exchange-rates'),
+          ),
+          const SizedBox(height: 12),
+          _ActionCard(
             icon: Icons.info_outline_rounded,
             iconColor: Colors.white54,
             title: 'ملخص الحساب',
@@ -173,11 +183,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const SizedBox(height: 12),
                 const Text('Fulus - فُلُس', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
-                Text('الإصدار 2.0.0', style: TextStyle(color: Colors.white38, fontSize: 12)),
+                Text('الإصدار 2.1.0', style: TextStyle(color: Colors.white38, fontSize: 12)),
                 const SizedBox(height: 4),
                 Text('مدير المصاري الذكي الاحترافي', style: TextStyle(color: Colors.white24, fontSize: 11)),
                 const SizedBox(height: 8),
-                Text('29 عملة • تصميم زجاجي • RTL', style: TextStyle(color: AppTheme.gold.withOpacity(0.5), fontSize: 10)),
+                Text('29 عملة • أسعار صرف مخصصة • تصميم زجاجي', style: TextStyle(color: AppTheme.gold.withOpacity(0.5), fontSize: 10)),
               ],
             ),
           ),

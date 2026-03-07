@@ -75,6 +75,7 @@ class AppProvider extends ChangeNotifier {
     transactions = await DB.getTransactions();
     budgets = await DB.getBudgets(selectedMonth.month, selectedMonth.year);
     transfers = await DB.getTransfers();
+    customExchangeRates = await DB.getExchangeRates();
     // Add demo data if fresh install
     if (accounts.isEmpty) await _addDemoData();
     notifyListeners();
@@ -219,6 +220,41 @@ class AppProvider extends ChangeNotifier {
     selectedMonth = DateTime(selectedMonth.year, selectedMonth.month + delta);
     await _reloadBudgets();
     notifyListeners();
+  }
+
+  // ── Exchange Rates ─────────────────────────────────────
+  double getEffectiveRate(String fromCurrency, String toCurrency) {
+    if (fromCurrency == toCurrency) return 1.0;
+    final customKey = '${fromCurrency}_$toCurrency';
+    if (customExchangeRates.containsKey(customKey)) {
+      return customExchangeRates[customKey]!;
+    }
+    // Use default rate from models
+    final from = currencyByCode(fromCurrency);
+    final to = currencyByCode(toCurrency);
+    return from.rateToUSD / to.rateToUSD;
+  }
+  
+  Future<void> setCustomExchangeRate(String from, String to, double rate) async {
+    await DB.setExchangeRate(from, to, rate);
+    customExchangeRates['${from}_$to'] = rate;
+    notifyListeners();
+  }
+  
+  Future<void> removeCustomExchangeRate(String from, String to) async {
+    await DB.deleteExchangeRate(from, to);
+    customExchangeRates.remove('${from}_$to');
+    notifyListeners();
+  }
+  
+  Future<void> resetAllExchangeRates() async {
+    await DB.clearExchangeRates();
+    customExchangeRates.clear();
+    notifyListeners();
+  }
+  
+  bool hasCustomRate(String from, String to) {
+    return customExchangeRates.containsKey('${from}_$to');
   }
 
   // ── Helpers ───────────────────────────────────────────
