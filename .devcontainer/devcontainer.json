@@ -1,0 +1,38 @@
+{
+  "name": "Fulus Flutter App",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {},
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Dart-Code.flutter",
+        "Dart-Code.dart-code",
+        "ms-python.python",
+        "GitHub.copilot",
+        "GitHub.copilot-chat"
+      ],
+      "settings": {
+        "dart.flutterSdkPath": "/usr/local/flutter",
+        "dart.lineLength": 120
+      }
+    }
+  },
+  "containerEnv": {
+    "FLUTTER_ROOT": "/usr/local/flutter",
+    "PATH": "/usr/local/flutter/bin:${containerEnv:PATH}"
+  },
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  "remoteUser": "vscode",
+  "forwardPorts": [8080, 3000],
+  "portsAttributes": [
+    {
+      "port": 8080,
+      "label": "Flutter Web",
+      "onAutoForward": "notify"
+    }
+  ]
+}
