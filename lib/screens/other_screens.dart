@@ -1,12 +1,16 @@
 // lib/screens/other_screens.dart
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../models/models.dart';
 import '../providers/app_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
 import 'add_transaction_screen.dart';
+import 'transaction_details_screen.dart';
+import 'account_details_screen.dart';
 
 // ─────────────────────────────────────────────────────────
 // ACCOUNTS SCREEN
@@ -35,12 +39,18 @@ class AccountsScreen extends StatelessWidget {
               separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (_, i) => _AccountTile(
                 account: p.accounts[i],
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => AccountDetailsScreen(account: p.accounts[i]),
+                  ),
+                ),
                 onDelete: () async {
                   final name = p.accounts[i].name;
                   await p.deleteAccount(p.accounts[i].id);
                   if (context.mounted) showSnack(context, 'تم حذف حساب "$name"', emoji: '🗑️');
                 },
-              ),
+              ).animate().fadeIn(delay: (i * 50).ms).slideX(begin: 0.1),
             ),
     );
   }
@@ -107,34 +117,90 @@ class AccountsScreen extends StatelessWidget {
 class _AccountTile extends StatelessWidget {
   final Account account;
   final VoidCallback onDelete;
-  const _AccountTile({required this.account, required this.onDelete});
+  final VoidCallback? onTap;
+  const _AccountTile({required this.account, required this.onDelete, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final cur = currencyByCode(account.currency);
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1A24), borderRadius: BorderRadius.circular(20),
-        border: Border(right: BorderSide(color: account.color, width: 4)),
+    return GestureDetector(
+      onTap: onTap,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: account.color.withOpacity(0.3)),
+            ),
+            child: Row(children: [
+              Container(
+                width: 52, height: 52,
+                decoration: BoxDecoration(
+                  color: account.color.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Center(
+                  child: Text(account.icon, style: const TextStyle(fontSize: 24)),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        account.name,
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (account.isHiddenFromTotal) ...[
+                      const SizedBox(width: 6),
+                      Icon(Icons.visibility_off_rounded, size: 14, color: Colors.white38),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Text(cur.flag, style: const TextStyle(fontSize: 12)),
+                    const SizedBox(width: 4),
+                    Text(account.currency, style: const TextStyle(color: Colors.white38, fontSize: 12)),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: account.color.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        account.typeNameAr,
+                        style: TextStyle(color: account.color, fontSize: 10, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                ),
+              ])),
+              Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                Text(
+                  fmtAmount(account.balance, account.currency),
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                    color: account.balance >= 0 ? AppTheme.green : AppTheme.red,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Icon(Icons.chevron_left_rounded, color: Colors.white24, size: 20),
+              ]),
+            ]),
+          ),
+        ),
       ),
-      child: Row(children: [
-        Container(width: 52, height: 52,
-          decoration: BoxDecoration(color: account.color, borderRadius: BorderRadius.circular(14)),
-          child: const Icon(Icons.account_balance_wallet_rounded, color: Colors.white)),
-        const SizedBox(width: 14),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(account.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
-          Text('${cur.flag} ${account.currency}', style: const TextStyle(color: Colors.white38, fontSize: 12)),
-        ])),
-        Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-          Text(fmtAmount(account.balance, account.currency),
-            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800,
-              color: account.balance >= 0 ? AppTheme.green : AppTheme.red)),
-          GestureDetector(onTap: onDelete,
-            child: const Text('حذف', style: TextStyle(fontSize: 11, color: AppTheme.red))),
-        ]),
-      ]),
     );
   }
 }
@@ -177,8 +243,17 @@ class _TxState extends State<TransactionsScreen> {
               buttonLabel: 'إضافة معاملة',
               onButton: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddTransactionScreen())))
           : ListView.builder(
+              padding: const EdgeInsets.only(bottom: 100),
               itemCount: txs.length,
-              itemBuilder: (_, i) => TxItem(tx: txs[i], onTap: () => _confirmDelete(context, p, txs[i])))),
+              itemBuilder: (_, i) => TxItem(
+                tx: txs[i],
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => TransactionDetailsScreen(transaction: txs[i]),
+                  ),
+                ),
+              ).animate().fadeIn(delay: (i * 30).ms).slideX(begin: 0.05))),
       ]),
     );
   }

@@ -1,11 +1,15 @@
 // lib/screens/home_screen.dart
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../models/models.dart';
 import '../providers/app_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
 import 'add_transaction_screen.dart';
+import 'transaction_details_screen.dart';
+import 'account_details_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -47,8 +51,8 @@ class HomeScreen extends StatelessWidget {
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddTransactionScreen()))),
                   _QuickAction(icon: Icons.swap_horiz_rounded, label: 'تحويل', color: const Color(0xFF60A5FA),
                     onTap: () => Navigator.pushNamed(context, '/transfer')),
-                  _QuickAction(icon: Icons.track_changes_rounded, label: 'ميزانية', color: Colors.deepPurple.shade300,
-                    onTap: () => Navigator.pushNamed(context, '/budget')),
+                  _QuickAction(icon: Icons.currency_exchange_rounded, label: 'محول', color: AppTheme.purple,
+                    onTap: () => Navigator.pushNamed(context, '/converter')),
                   _QuickAction(icon: Icons.bar_chart_rounded, label: 'تقارير', color: AppTheme.gold,
                     onTap: () => Navigator.pushNamed(context, '/reports')),
                 ]),
@@ -92,21 +96,20 @@ class HomeScreen extends StatelessWidget {
                 : SliverList(delegate: SliverChildBuilderDelegate(
                     (_, i) => TxItem(
                       tx: p.transactions[i],
-                      onTap: () => _confirmDelete(context, p, p.transactions[i]),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => TransactionDetailsScreen(transaction: p.transactions[i]),
+                        ),
+                      ),
                       index: i,
                     ),
                     childCount: p.transactions.take(10).length,
                   )),
 
-            const SliverToBoxAdapter(child: SizedBox(height: 100)),
+            const SliverToBoxAdapter(child: SizedBox(height: 120)),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddTransactionScreen())),
-        backgroundColor: AppTheme.gold,
-        foregroundColor: const Color(0xFF1A1000),
-        child: const Icon(Icons.add_rounded, size: 28),
       ),
     );
   }

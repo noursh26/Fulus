@@ -92,12 +92,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
-              children: kCurrencies.take(6).map((cur) => _CurrencyTile(
+              children: kCurrencies.take(9).map((cur) => _CurrencyTile(
                 currency: cur,
                 selected: p.mainCurrency == cur.code,
                 onTap: () => p.setMainCurrency(cur.code),
               )).toList(),
             ),
+          ),
+          TextButton(
+            onPressed: () => _showAllCurrencies(context, p),
+            child: const Text('عرض جميع العملات...'),
           ),
           const SizedBox(height: 24),
 
@@ -127,9 +131,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _SectionTitle(title: 'البيانات', icon: Icons.storage_rounded),
           const SizedBox(height: 8),
           _ActionCard(
+            icon: Icons.analytics_rounded,
+            iconColor: AppTheme.purple,
+            title: 'إحصائيات متقدمة',
+            subtitle: 'تحليل مفصل للمصاريف والدخل',
+            onTap: () => Navigator.pushNamed(context, '/statistics'),
+          ),
+          const SizedBox(height: 12),
+          _ActionCard(
+            icon: Icons.currency_exchange_rounded,
+            iconColor: AppTheme.cyan,
+            title: 'محول العملات',
+            subtitle: 'تحويل بين ${kCurrencies.length} عملة',
+            onTap: () => Navigator.pushNamed(context, '/converter'),
+          ),
+          const SizedBox(height: 12),
+          _ActionCard(
             icon: Icons.info_outline_rounded,
             iconColor: Colors.white54,
-            title: 'إحصائيات',
+            title: 'ملخص الحساب',
             subtitle: '${p.transactions.length} معاملة • ${p.accounts.length} حساب',
             onTap: () => _showStats(context, p),
           ),
@@ -152,15 +172,75 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text('Fulus', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
-                Text('الإصدار 1.0.0', style: TextStyle(color: Colors.white38, fontSize: 12)),
+                const Text('Fulus - فُلُس', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+                Text('الإصدار 2.0.0', style: TextStyle(color: Colors.white38, fontSize: 12)),
                 const SizedBox(height: 4),
-                Text('مدير المصاري الذكي', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                Text('مدير المصاري الذكي الاحترافي', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                const SizedBox(height: 8),
+                Text('29 عملة • تصميم زجاجي • RTL', style: TextStyle(color: AppTheme.gold.withOpacity(0.5), fontSize: 10)),
               ],
             ),
           ),
           const SizedBox(height: 40),
         ],
+      ),
+    );
+  }
+
+  void _showAllCurrencies(BuildContext ctx, AppProvider p) {
+    showModalBottomSheet(
+      context: ctx,
+      backgroundColor: const Color(0xFF111118),
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (_, scrollController) => Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  Container(width: 36, height: 4,
+                    decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
+                  const SizedBox(height: 16),
+                  const Text('اختر العملة الرئيسية', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                controller: scrollController,
+                itemCount: kCurrencies.length,
+                itemBuilder: (_, i) {
+                  final cur = kCurrencies[i];
+                  final selected = p.mainCurrency == cur.code;
+                  return ListTile(
+                    onTap: () {
+                      p.setMainCurrency(cur.code);
+                      Navigator.pop(ctx);
+                      showSnack(ctx, 'تم تغيير العملة إلى ${cur.nameAr}', emoji: cur.flag);
+                    },
+                    leading: Text(cur.flag, style: const TextStyle(fontSize: 24)),
+                    title: Text(cur.nameAr, style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: selected ? AppTheme.gold : Colors.white,
+                    )),
+                    subtitle: Text('${cur.code} • ${cur.symbol}', style: const TextStyle(color: Colors.white38, fontSize: 12)),
+                    trailing: selected
+                        ? const Icon(Icons.check_circle_rounded, color: AppTheme.gold)
+                        : Text('${cur.rateToUSD}', style: const TextStyle(color: Colors.white24, fontSize: 11)),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

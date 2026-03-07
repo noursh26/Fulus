@@ -1,11 +1,14 @@
 // lib/screens/reports_screen.dart
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../providers/app_provider.dart';
 import '../theme/app_theme.dart';
 import '../models/models.dart';
 import '../widgets/shared_widgets.dart';
+import 'transaction_details_screen.dart';
 
 class ReportsScreen extends StatelessWidget {
   const ReportsScreen({super.key});
@@ -17,7 +20,17 @@ class ReportsScreen extends StatelessWidget {
     final monthLabel = '${months[p.selectedMonth.month - 1]} ${p.selectedMonth.year}';
 
     return Scaffold(
-      appBar: AppBar(title: const Text('التقارير'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('التقارير'),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.analytics_rounded),
+            tooltip: 'إحصائيات متقدمة',
+            onPressed: () => Navigator.pushNamed(context, '/statistics'),
+          ),
+        ],
+      ),
       body: ListView(padding: const EdgeInsets.all(16), children: [
         // ─── Month Selector ─────────────────────────
         Container(
@@ -83,8 +96,16 @@ class ReportsScreen extends StatelessWidget {
 
         // ─── Monthly Transactions ───────────────────
         const SectionHeader(title: 'معاملات الشهر'),
-        ...p.monthlyTransactions.map((tx) => TxItem(tx: tx)),
-        const SizedBox(height: 40),
+        ...p.monthlyTransactions.asMap().entries.map((e) => TxItem(
+          tx: e.value,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => TransactionDetailsScreen(transaction: e.value),
+            ),
+          ),
+        ).animate().fadeIn(delay: (e.key * 30).ms)),
+        const SizedBox(height: 120),
       ]),
     );
   }

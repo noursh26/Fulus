@@ -1,8 +1,10 @@
 // lib/widgets/shared_widgets.dart
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
+import '../screens/account_details_screen.dart';
 
 // ─── Section Header ───────────────────────────────────────
 class SectionHeader extends StatelessWidget {
@@ -122,44 +124,64 @@ class AccountCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final cur = currencyByCode(account.currency);
     Widget card = GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 170,
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft, end: Alignment.bottomRight,
-            colors: [account.color, account.color.withOpacity(0.6)],
-          ),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: account.color.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 8))],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      onTap: onTap ?? () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => AccountDetailsScreen(account: account)),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            width: 170,
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft, end: Alignment.bottomRight,
+                colors: [account.color.withOpacity(0.8), account.color.withOpacity(0.4)],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white.withOpacity(0.2)),
+              boxShadow: [BoxShadow(color: account.color.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 8))],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 32, height: 32,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Icons.account_balance_wallet_rounded, color: Colors.white, size: 18),
+                Row(
+                  children: [
+                    Container(
+                      width: 32, height: 32,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Center(
+                        child: Text(account.icon, style: const TextStyle(fontSize: 16)),
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(cur.flag, style: const TextStyle(fontSize: 18)),
+                    if (account.isHiddenFromTotal) ...[
+                      const SizedBox(width: 4),
+                      Icon(Icons.visibility_off_rounded, size: 14, color: Colors.white.withOpacity(0.6)),
+                    ],
+                  ],
                 ),
                 const Spacer(),
-                Text(cur.flag, style: const TextStyle(fontSize: 18)),
+                Text(account.name, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 2),
+                Text(
+                  account.typeNameAr,
+                  style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 10),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  fmtAmount(account.balance, account.currency),
+                  style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800, fontFamily: 'monospace'),
+                ),
               ],
             ),
-            const Spacer(),
-            Text(account.name, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 4),
-            Text(
-              fmtAmount(account.balance, account.currency),
-              style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800, fontFamily: 'monospace'),
-            ),
-            Text(account.currency, style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 11)),
-          ],
+          ),
         ),
       ),
     );

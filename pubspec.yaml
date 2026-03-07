@@ -1,13 +1,15 @@
 name: fulus
-description: مدير المصاري الذكي - تطبيق إدارة مالية شخصية احترافي
+description: فُلُس - مدير المصاري الذكي الاحترافي | تطبيق إدارة مالية شخصية متقدم مع دعم 29 عملة وتصميم زجاجي احترافي
 publish_to: 'none'
-version: 1.0.0+1
+version: 2.0.0+1
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
   flutter:
+    sdk: flutter
+  flutter_localizations:
     sdk: flutter
   provider: ^6.1.1
   sqflite: ^2.3.0
@@ -23,6 +25,8 @@ dependencies:
   share_plus: ^7.2.1
   permission_handler: ^11.1.0
   flutter_animate: ^4.3.0
+  cached_network_image: ^3.3.0
+  shimmer: ^3.0.0
 
 dev_dependencies:
   flutter_test:

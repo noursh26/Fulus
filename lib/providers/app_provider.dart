@@ -1,6 +1,7 @@
 // lib/providers/app_provider.dart
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
 import '../utils/database.dart';
 
@@ -14,9 +15,38 @@ class AppProvider extends ChangeNotifier {
   DateTime selectedMonth = DateTime.now();
   bool isDark = true;
   String mainCurrency = 'USD';
+  Map<String, double> customExchangeRates = {};
+  bool showHiddenAccounts = false;
+  String sortTransactionsBy = 'date';
+  bool sortDescending = true;
 
   // ── Computed ──────────────────────────────────────────
-  double get totalBalance => accounts.fold(0, (s, a) => s + a.balance);
+  double get totalBalance {
+    return accounts
+        .where((a) => !a.isHiddenFromTotal && !a.isArchived)
+        .fold(0.0, (sum, a) => sum + convertToMainCurrency(a.balance, a.currency));
+  }
+  
+  double get totalBalanceAllAccounts {
+    return accounts.fold(0.0, (sum, a) => sum + convertToMainCurrency(a.balance, a.currency));
+  }
+  
+  List<Account> get visibleAccounts {
+    return accounts.where((a) => !a.isArchived && (showHiddenAccounts || !a.isHiddenFromTotal)).toList();
+  }
+  
+  List<Account> get activeAccounts {
+    return accounts.where((a) => !a.isArchived).toList();
+  }
+  
+  double convertToMainCurrency(double amount, String fromCurrency) {
+    if (fromCurrency == mainCurrency) return amount;
+    final customKey = '${fromCurrency}_$mainCurrency';
+    if (customExchangeRates.containsKey(customKey)) {
+      return amount * customExchangeRates[customKey]!;
+    }
+    return convertCurrency(amount, fromCurrency, mainCurrency);
+  }
 
   List<Transaction> get monthlyTransactions {
     final m = selectedMonth.month;
@@ -86,12 +116,13 @@ class AppProvider extends ChangeNotifier {
     accounts.add(a);
     notifyListeners();
   }
-  Future<void> updateAccount(Account a) async {
-    await DB.updateAccount(a);
-    final i = accounts.indexWhere((x) => x.id == a.id);
-    if (i >= 0) accounts[i] = a;
+  Future<void> updateAccount(Account acc) async {
+    await DB.updateAccount(acc);
+    final idx = accounts.indexWhere((a) => a.id == acc.id);
+    if (idx >= 0) accounts[idx] = acc;
     notifyListeners();
   }
+  
   Future<void> deleteAccount(String id) async {
     await DB.deleteAccount(id);
     accounts.removeWhere((a) => a.id == id);
@@ -108,6 +139,25 @@ class AppProvider extends ChangeNotifier {
     await DB.updateAccount(acc);
     notifyListeners();
   }
+  
+  Future<void> updateTransaction(Transaction oldTx, Transaction newTx) async {
+    // Revert old transaction effect
+    final oldAcc = accounts.firstWhere((a) => a.id == oldTx.accountId, orElse: () => accounts.first);
+    oldAcc.balance += oldTx.type == TransactionType.income ? -oldTx.amount : oldTx.amount;
+    
+    // Apply new transaction effect
+    final newAcc = accounts.firstWhere((a) => a.id == newTx.accountId, orElse: () => accounts.first);
+    newAcc.balance += newTx.type == TransactionType.income ? newTx.amount : -newTx.amount;
+    
+    await DB.updateTransaction(newTx);
+    await DB.updateAccount(oldAcc);
+    if (oldAcc.id != newAcc.id) await DB.updateAccount(newAcc);
+    
+    final idx = transactions.indexWhere((t) => t.id == newTx.id);
+    if (idx >= 0) transactions[idx] = newTx;
+    notifyListeners();
+  }
+  
   Future<void> deleteTransaction(Transaction t) async {
     await DB.deleteTransaction(t.id);
     transactions.removeWhere((x) => x.id == t.id);
@@ -115,6 +165,26 @@ class AppProvider extends ChangeNotifier {
     acc.balance += t.type == TransactionType.income ? -t.amount : t.amount;
     await DB.updateAccount(acc);
     notifyListeners();
+  }
+  
+  Transaction? getTransactionById(String id) {
+    return transactions.where((t) => t.id == id).firstOrNull;
+  }
+  
+  Account? accountById(String id) {
+    return accounts.where((a) => a.id == id).firstOrNull;
+  }
+  
+  List<Transaction> getTransactionsByAccount(String accountId) {
+    return transactions.where((t) => t.accountId == accountId).toList();
+  }
+  
+  List<Transaction> getTransactionsByCategory(String categoryId) {
+    return transactions.where((t) => t.categoryId == categoryId).toList();
+  }
+  
+  List<Transaction> getTransactionsByDateRange(DateTime start, DateTime end) {
+    return transactions.where((t) => t.date.isAfter(start) && t.date.isBefore(end)).toList();
   }
 
   // ── Budgets ───────────────────────────────────────────

@@ -1,7 +1,9 @@
 // lib/screens/add_transaction_screen.dart
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../models/models.dart';
 import '../providers/app_provider.dart';
 import '../theme/app_theme.dart';
@@ -17,10 +19,13 @@ class _State extends State<AddTransactionScreen> {
   String? _categoryId;
   String? _accountId;
   final _amountCtrl = TextEditingController();
-  final _descCtrl   = TextEditingController();
-  DateTime _date    = DateTime.now();
+  final _descCtrl = TextEditingController();
+  final _noteCtrl = TextEditingController();
+  final _payeeCtrl = TextEditingController();
+  DateTime _date = DateTime.now();
   RecurringType _recurring = RecurringType.none;
   bool _saving = false;
+  bool _showAdvanced = false;
 
   @override
   void didChangeDependencies() {
@@ -31,10 +36,26 @@ class _State extends State<AddTransactionScreen> {
     }
   }
 
+  @override
+  void dispose() {
+    _amountCtrl.dispose();
+    _descCtrl.dispose();
+    _noteCtrl.dispose();
+    _payeeCtrl.dispose();
+    super.dispose();
+  }
+
   void _resetFields() {
     _amountCtrl.clear();
     _descCtrl.clear();
-    setState(() { _categoryId = null; _date = DateTime.now(); _recurring = RecurringType.none; });
+    _noteCtrl.clear();
+    _payeeCtrl.clear();
+    setState(() { 
+      _categoryId = null; 
+      _date = DateTime.now(); 
+      _recurring = RecurringType.none;
+      _showAdvanced = false;
+    });
   }
 
   Future<void> _save() async {
@@ -60,6 +81,8 @@ class _State extends State<AddTransactionScreen> {
       date: _date,
       currency: acc.currency,
       recurring: _recurring,
+      note: _noteCtrl.text.trim().isEmpty ? null : _noteCtrl.text.trim(),
+      payee: _payeeCtrl.text.trim().isEmpty ? null : _payeeCtrl.text.trim(),
     );
     await p.addTransaction(tx);
     _resetFields();
@@ -151,6 +174,70 @@ class _State extends State<AddTransactionScreen> {
           Text('وصف (اختياري)', style: _labelStyle),
           const SizedBox(height: 8),
           TextField(controller: _descCtrl, maxLines: 1, decoration: const InputDecoration(hintText: 'مثال: فاتورة الكهرباء...')),
+          const SizedBox(height: 20),
+
+          // ─── Advanced Options Toggle ─────────────
+          GestureDetector(
+            onTap: () => setState(() => _showAdvanced = !_showAdvanced),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppTheme.darkCard,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white10),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    _showAdvanced ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+                    color: Colors.white54,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'خيارات متقدمة',
+                    style: TextStyle(
+                      color: _showAdvanced ? AppTheme.gold : Colors.white54,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Spacer(),
+                  if (_showAdvanced)
+                    Icon(Icons.check_circle_rounded, color: AppTheme.gold, size: 18),
+                ],
+              ),
+            ),
+          ),
+          
+          if (_showAdvanced) ...[
+            const SizedBox(height: 16),
+            // ─── Payee ─────────────────────────────
+            Text('المستفيد (اختياري)', style: _labelStyle),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _payeeCtrl,
+              maxLines: 1,
+              decoration: InputDecoration(
+                hintText: 'اسم الجهة أو الشخص...',
+                prefixIcon: const Icon(Icons.person_outline_rounded, color: Colors.white38),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // ─── Note ──────────────────────────────
+            Text('ملاحظات (اختياري)', style: _labelStyle),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _noteCtrl,
+              maxLines: 3,
+              decoration: InputDecoration(
+                hintText: 'أضف ملاحظات إضافية...',
+                prefixIcon: const Padding(
+                  padding: EdgeInsets.only(bottom: 40),
+                  child: Icon(Icons.note_outlined, color: Colors.white38),
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 20),
 
           // ─── Date ─────────────────────────────────

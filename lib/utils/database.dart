@@ -18,19 +18,70 @@ class DB {
 
   static Future<void> _onCreate(Database db, int version) async {
     await db.execute('''CREATE TABLE accounts(
-      id TEXT PRIMARY KEY, name TEXT, currency TEXT,
-      balance REAL, colorValue INTEGER, createdAt INTEGER)''');
+      id TEXT PRIMARY KEY,
+      name TEXT,
+      currency TEXT,
+      balance REAL,
+      colorValue INTEGER,
+      createdAt INTEGER,
+      accountType TEXT DEFAULT 'cash',
+      isHiddenFromTotal INTEGER DEFAULT 0,
+      isArchived INTEGER DEFAULT 0,
+      icon TEXT DEFAULT '💰',
+      note TEXT,
+      creditLimit REAL,
+      targetBalance REAL,
+      sortOrder INTEGER DEFAULT 0
+    )''');
     await db.execute('''CREATE TABLE transactions(
-      id TEXT PRIMARY KEY, accountId TEXT, categoryId TEXT,
-      amount REAL, type TEXT, description TEXT,
-      date INTEGER, currency TEXT, recurring TEXT)''');
+      id TEXT PRIMARY KEY,
+      accountId TEXT,
+      categoryId TEXT,
+      amount REAL,
+      type TEXT,
+      description TEXT,
+      date INTEGER,
+      currency TEXT,
+      recurring TEXT,
+      location TEXT,
+      attachment TEXT,
+      tags TEXT,
+      payee TEXT,
+      createdAt INTEGER,
+      updatedAt INTEGER,
+      isConfirmed INTEGER DEFAULT 1,
+      note TEXT,
+      originalAmount REAL,
+      originalCurrency TEXT
+    )''');
     await db.execute('''CREATE TABLE budgets(
-      id TEXT PRIMARY KEY, categoryId TEXT,
-      amount REAL, month INTEGER, year INTEGER)''');
+      id TEXT PRIMARY KEY,
+      categoryId TEXT,
+      amount REAL,
+      month INTEGER,
+      year INTEGER
+    )''');
     await db.execute('''CREATE TABLE transfers(
-      id TEXT PRIMARY KEY, fromAccountId TEXT, toAccountId TEXT,
-      amount REAL, convertedAmount REAL, exchangeRate REAL,
-      note TEXT, date INTEGER)''');
+      id TEXT PRIMARY KEY,
+      fromAccountId TEXT,
+      toAccountId TEXT,
+      amount REAL,
+      convertedAmount REAL,
+      exchangeRate REAL,
+      note TEXT,
+      date INTEGER
+    )''');
+    await db.execute('''CREATE TABLE settings(
+      key TEXT PRIMARY KEY,
+      value TEXT
+    )''');
+    await db.execute('''CREATE TABLE exchange_rates(
+      id TEXT PRIMARY KEY,
+      fromCurrency TEXT,
+      toCurrency TEXT,
+      rate REAL,
+      updatedAt INTEGER
+    )''');
   }
 
   // ── Accounts ──────────────────────────────────────────
@@ -65,6 +116,8 @@ class DB {
   }
   static Future<void> insertTransaction(m.Transaction t) async =>
       (await instance).insert('transactions', t.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+  static Future<void> updateTransaction(m.Transaction t) async =>
+      (await instance).update('transactions', t.toMap(), where: 'id=?', whereArgs: [t.id]);
   static Future<void> deleteTransaction(String id) async =>
       (await instance).delete('transactions', where: 'id=?', whereArgs: [id]);
 
