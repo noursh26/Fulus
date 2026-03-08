@@ -1,7 +1,7 @@
 name: fulus
 description: فُلُس - مدير المصاري الذكي الاحترافي | تطبيق إدارة مالية شخصية متقدم مع دعم 29 عملة وتصميم زجاجي احترافي
 publish_to: 'none'
-version: 2.1.0+2
+version: 2.0.0+1
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

@@ -105,6 +105,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 24),
 
+          // قسم أسعار الصرف المخصصة
+          _SectionTitle(title: 'أسعار الصرف', icon: Icons.currency_exchange_rounded),
+          const SizedBox(height: 8),
+          _ActionCard(
+            icon: Icons.edit_rounded,
+            iconColor: AppTheme.orange,
+            title: 'إدارة أسعار الصرف',
+            subtitle: '${p.customExchangeRates.length} سعر مخصص',
+            onTap: () => _showExchangeRatesManager(context, p),
+          ),
+          const SizedBox(height: 12),
+          _ActionCard(
+            icon: Icons.add_circle_outline_rounded,
+            iconColor: AppTheme.green,
+            title: 'إضافة سعر صرف جديد',
+            subtitle: 'تحديد سعر صرف مخصص للعملات',
+            onTap: () => _showAddExchangeRate(context, p),
+          ),
+          const SizedBox(height: 24),
+
           // قسم التصدير
           _SectionTitle(title: 'تصدير البيانات', icon: Icons.download_rounded),
           const SizedBox(height: 8),
@@ -147,16 +167,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 12),
           _ActionCard(
-            icon: Icons.tune_rounded,
-            iconColor: AppTheme.orange,
-            title: 'أسعار الصرف المخصصة',
-            subtitle: p.customExchangeRates.isEmpty 
-                ? 'استخدم الأسعار الافتراضية'
-                : '${p.customExchangeRates.length} سعر مخصص',
-            onTap: () => Navigator.pushNamed(context, '/exchange-rates'),
-          ),
-          const SizedBox(height: 12),
-          _ActionCard(
             icon: Icons.info_outline_rounded,
             iconColor: Colors.white54,
             title: 'ملخص الحساب',
@@ -187,7 +197,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: 4),
                 Text('مدير المصاري الذكي الاحترافي', style: TextStyle(color: Colors.white24, fontSize: 11)),
                 const SizedBox(height: 8),
-                Text('29 عملة • أسعار صرف مخصصة • تصميم زجاجي', style: TextStyle(color: AppTheme.gold.withOpacity(0.5), fontSize: 10)),
+                Text('29 عملة • تصميم زجاجي • RTL', style: TextStyle(color: AppTheme.gold.withOpacity(0.5), fontSize: 10)),
               ],
             ),
           ),
@@ -255,13 +265,332 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  void _showExchangeRatesManager(BuildContext ctx, AppProvider p) {
+    showModalBottomSheet(
+      context: ctx,
+      backgroundColor: const Color(0xFF111118),
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.4,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (context, scrollController) => Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  Container(width: 36, height: 4,
+                    decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('💱 أسعار الصرف المخصصة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                      IconButton(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _showAddExchangeRate(ctx, p);
+                        },
+                        icon: const Icon(Icons.add_circle_rounded, color: AppTheme.green),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: p.customExchangeRates.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('💱', style: TextStyle(fontSize: 48)),
+                          const SizedBox(height: 12),
+                          Text('لا توجد أسعار صرف مخصصة', style: TextStyle(color: Colors.white54)),
+                          const SizedBox(height: 8),
+                          Text('اضغط + لإضافة سعر صرف جديد', style: TextStyle(color: Colors.white38, fontSize: 12)),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      controller: scrollController,
+                      itemCount: p.customExchangeRates.length,
+                      itemBuilder: (_, i) {
+                        final entry = p.customExchangeRates.entries.toList()[i];
+                        final parts = entry.key.split('_');
+                        final fromCode = parts[0];
+                        final toCode = parts[1];
+                        final fromCur = currencyByCode(fromCode);
+                        final toCur = currencyByCode(toCode);
+                        return ListTile(
+                          leading: Text('${fromCur.flag}→${toCur.flag}', style: const TextStyle(fontSize: 20)),
+                          title: Text('$fromCode → $toCode', style: const TextStyle(fontWeight: FontWeight.w600)),
+                          subtitle: Text('1 $fromCode = ${entry.value.toStringAsFixed(4)} $toCode', 
+                            style: TextStyle(color: AppTheme.gold, fontSize: 12)),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit_rounded, color: Colors.white54, size: 20),
+                                onPressed: () {
+                                  Navigator.pop(ctx);
+                                  _showEditExchangeRate(ctx, p, fromCode, toCode, entry.value);
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete_rounded, color: AppTheme.red, size: 20),
+                                onPressed: () async {
+                                  await p.removeCustomExchangeRate(fromCode, toCode);
+                                  if (ctx.mounted) {
+                                    showSnack(ctx, 'تم حذف سعر الصرف', emoji: '🗑️');
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAddExchangeRate(BuildContext ctx, AppProvider p) {
+    String? fromCurrency;
+    String? toCurrency;
+    final rateController = TextEditingController();
+    
+    showModalBottomSheet(
+      context: ctx,
+      backgroundColor: const Color(0xFF111118),
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => StatefulBuilder(
+        builder: (context, setState) => Padding(
+          padding: EdgeInsets.only(
+            left: 24, right: 24, top: 24,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(width: 36, height: 4,
+                decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
+              const SizedBox(height: 20),
+              const Text('➕ إضافة سعر صرف جديد', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: _CurrencyDropdown(
+                      label: 'من العملة',
+                      value: fromCurrency,
+                      onChanged: (v) => setState(() => fromCurrency = v),
+                    ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    child: Icon(Icons.arrow_forward_rounded, color: AppTheme.gold),
+                  ),
+                  Expanded(
+                    child: _CurrencyDropdown(
+                      label: 'إلى العملة',
+                      value: toCurrency,
+                      onChanged: (v) => setState(() => toCurrency = v),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: rateController,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  labelText: 'سعر الصرف',
+                  hintText: fromCurrency != null && toCurrency != null
+                      ? '1 $fromCurrency = ? $toCurrency'
+                      : 'أدخل سعر الصرف',
+                  prefixIcon: const Icon(Icons.currency_exchange_rounded),
+                ),
+              ),
+              if (fromCurrency != null && toCurrency != null) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.gold.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppTheme.gold.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.info_outline_rounded, color: AppTheme.gold, size: 18),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'السعر الافتراضي: 1 $fromCurrency = ${p.getExchangeRate(fromCurrency!, toCurrency!).toStringAsFixed(4)} $toCurrency',
+                          style: const TextStyle(fontSize: 11, color: AppTheme.gold),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    if (fromCurrency == null || toCurrency == null) {
+                      showSnack(ctx, 'اختر العملتين', emoji: '⚠️', isError: true);
+                      return;
+                    }
+                    if (fromCurrency == toCurrency) {
+                      showSnack(ctx, 'لا يمكن اختيار نفس العملة', emoji: '⚠️', isError: true);
+                      return;
+                    }
+                    final rate = double.tryParse(rateController.text);
+                    if (rate == null || rate <= 0) {
+                      showSnack(ctx, 'أدخل سعر صرف صحيح', emoji: '⚠️', isError: true);
+                      return;
+                    }
+                    await p.setCustomExchangeRate(fromCurrency!, toCurrency!, rate);
+                    if (ctx.mounted) {
+                      Navigator.pop(ctx);
+                      showSnack(ctx, 'تم حفظ سعر الصرف', emoji: '✅');
+                    }
+                  },
+                  child: const Text('حفظ'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showEditExchangeRate(BuildContext ctx, AppProvider p, String fromCode, String toCode, double currentRate) {
+    final rateController = TextEditingController(text: currentRate.toString());
+    final fromCur = currencyByCode(fromCode);
+    final toCur = currencyByCode(toCode);
+    
+    showModalBottomSheet(
+      context: ctx,
+      backgroundColor: const Color(0xFF111118),
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => Padding(
+        padding: EdgeInsets.only(
+          left: 24, right: 24, top: 24,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(width: 36, height: 4,
+              decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
+            const SizedBox(height: 20),
+            Text('✏️ تعديل سعر الصرف', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            Text('${fromCur.flag} $fromCode → ${toCur.flag} $toCode', 
+              style: TextStyle(color: Colors.white54, fontSize: 14)),
+            const SizedBox(height: 24),
+            TextField(
+              controller: rateController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              autofocus: true,
+              decoration: InputDecoration(
+                labelText: 'سعر الصرف',
+                hintText: '1 $fromCode = ? $toCode',
+                prefixIcon: const Icon(Icons.currency_exchange_rounded),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline_rounded, color: Colors.white38, size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'السعر الافتراضي للنظام: ${(currencyByCode(toCode).rateToUSD / currencyByCode(fromCode).rateToUSD).toStringAsFixed(4)}',
+                      style: const TextStyle(fontSize: 11, color: Colors.white38),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () async {
+                      await p.removeCustomExchangeRate(fromCode, toCode);
+                      if (ctx.mounted) {
+                        Navigator.pop(ctx);
+                        showSnack(ctx, 'تم استعادة السعر الافتراضي', emoji: '↩️');
+                      }
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white70,
+                      side: const BorderSide(color: Colors.white24),
+                      minimumSize: const Size(0, 50),
+                    ),
+                    child: const Text('استعادة الافتراضي'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final rate = double.tryParse(rateController.text);
+                      if (rate == null || rate <= 0) {
+                        showSnack(ctx, 'أدخل سعر صرف صحيح', emoji: '⚠️', isError: true);
+                        return;
+                      }
+                      await p.setCustomExchangeRate(fromCode, toCode, rate);
+                      if (ctx.mounted) {
+                        Navigator.pop(ctx);
+                        showSnack(ctx, 'تم تحديث سعر الصرف', emoji: '✅');
+                      }
+                    },
+                    child: const Text('حفظ'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showStats(BuildContext ctx, AppProvider p) {
     final totalIncome = p.transactions
         .where((t) => t.type == TransactionType.income)
-        .fold(0.0, (s, t) => s + t.amount);
+        .fold(0.0, (s, t) => s + p.convertToMainCurrency(t.amount, t.currency));
     final totalExpense = p.transactions
         .where((t) => t.type == TransactionType.expense)
-        .fold(0.0, (s, t) => s + t.amount);
+        .fold(0.0, (s, t) => s + p.convertToMainCurrency(t.amount, t.currency));
     
     showModalBottomSheet(
       context: ctx,
@@ -422,4 +751,103 @@ class _StatRow extends StatelessWidget {
       Text(value, style: TextStyle(fontWeight: FontWeight.w700, color: color ?? Colors.white, fontFamily: 'monospace')),
     ]),
   );
+}
+
+class _CurrencyDropdown extends StatelessWidget {
+  final String label;
+  final String? value;
+  final ValueChanged<String?> onChanged;
+  const _CurrencyDropdown({required this.label, required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedCur = value != null ? currencyByCode(value!) : null;
+    return GestureDetector(
+      onTap: () => _showCurrencyPicker(context),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        decoration: BoxDecoration(
+          color: AppTheme.darkCard,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white12),
+        ),
+        child: Row(
+          children: [
+            if (selectedCur != null) ...[
+              Text(selectedCur.flag, style: const TextStyle(fontSize: 18)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(selectedCur.code, style: const TextStyle(fontWeight: FontWeight.w600)),
+              ),
+            ] else ...[
+              const Icon(Icons.attach_money_rounded, color: Colors.white38, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(label, style: const TextStyle(color: Colors.white38, fontSize: 13)),
+              ),
+            ],
+            const Icon(Icons.arrow_drop_down_rounded, color: Colors.white38),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showCurrencyPicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF111118),
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        minChildSize: 0.4,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (_, scrollController) => Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  Container(width: 36, height: 4,
+                    decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
+                  const SizedBox(height: 16),
+                  Text('اختر العملة', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                controller: scrollController,
+                itemCount: kCurrencies.length,
+                itemBuilder: (_, i) {
+                  final cur = kCurrencies[i];
+                  final selected = value == cur.code;
+                  return ListTile(
+                    onTap: () {
+                      onChanged(cur.code);
+                      Navigator.pop(context);
+                    },
+                    leading: Text(cur.flag, style: const TextStyle(fontSize: 24)),
+                    title: Text(cur.nameAr, style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: selected ? AppTheme.gold : Colors.white,
+                    )),
+                    subtitle: Text('${cur.code} • ${cur.symbol}', 
+                      style: const TextStyle(color: Colors.white38, fontSize: 12)),
+                    trailing: selected
+                        ? const Icon(Icons.check_circle_rounded, color: AppTheme.gold)
+                        : null,
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

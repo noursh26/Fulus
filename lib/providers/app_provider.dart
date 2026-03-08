@@ -46,6 +46,17 @@ class AppProvider extends ChangeNotifier {
     }
     return convertCurrency(amount, fromCurrency, mainCurrency);
   }
+  
+  double getExchangeRate(String fromCurrency, String toCurrency) {
+    if (fromCurrency == toCurrency) return 1.0;
+    final customKey = '${fromCurrency}_$toCurrency';
+    if (customExchangeRates.containsKey(customKey)) {
+      return customExchangeRates[customKey]!;
+    }
+    final from = currencyByCode(fromCurrency);
+    final to = currencyByCode(toCurrency);
+    return to.rateToUSD / from.rateToUSD;
+  }
 
   List<Transaction> get monthlyTransactions {
     final m = selectedMonth.month;
@@ -54,16 +65,18 @@ class AppProvider extends ChangeNotifier {
   }
 
   double get monthlyIncome =>
-      monthlyTransactions.where((t) => t.type == TransactionType.income).fold(0, (s, t) => s + t.amount);
+      monthlyTransactions.where((t) => t.type == TransactionType.income)
+          .fold(0.0, (s, t) => s + convertToMainCurrency(t.amount, t.currency));
   double get monthlyExpense =>
-      monthlyTransactions.where((t) => t.type == TransactionType.expense).fold(0, (s, t) => s + t.amount);
+      monthlyTransactions.where((t) => t.type == TransactionType.expense)
+          .fold(0.0, (s, t) => s + convertToMainCurrency(t.amount, t.currency));
   double get monthlySavings => monthlyIncome - monthlyExpense;
 
   Map<String, double> get expensesByCategory {
     final map = <String, double>{};
     for (final t in monthlyTransactions.where((t) => t.type == TransactionType.expense)) {
       final id = t.categoryId ?? 'other_exp';
-      map[id] = (map[id] ?? 0) + t.amount;
+      map[id] = (map[id] ?? 0) + convertToMainCurrency(t.amount, t.currency);
     }
     final sorted = map.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
     return Map.fromEntries(sorted);
@@ -75,7 +88,9 @@ class AppProvider extends ChangeNotifier {
     transactions = await DB.getTransactions();
     budgets = await DB.getBudgets(selectedMonth.month, selectedMonth.year);
     transfers = await DB.getTransfers();
-    customExchangeRates = await DB.getExchangeRates();
+    customExchangeRates = await DB.getCustomExchangeRates();
+    final savedCurrency = await DB.getSetting('mainCurrency');
+    if (savedCurrency != null) mainCurrency = savedCurrency;
     // Add demo data if fresh install
     if (accounts.isEmpty) await _addDemoData();
     notifyListeners();
@@ -215,50 +230,41 @@ class AppProvider extends ChangeNotifier {
 
   // ── Settings ──────────────────────────────────────────
   void toggleTheme() { isDark = !isDark; notifyListeners(); }
-  void setMainCurrency(String c) { mainCurrency = c; notifyListeners(); }
+  Future<void> setMainCurrency(String c) async { 
+    mainCurrency = c; 
+    await DB.saveSetting('mainCurrency', c);
+    notifyListeners(); 
+  }
   Future<void> changeMonth(int delta) async {
     selectedMonth = DateTime(selectedMonth.year, selectedMonth.month + delta);
     await _reloadBudgets();
     notifyListeners();
   }
-
-  // ── Exchange Rates ─────────────────────────────────────
-  double getEffectiveRate(String fromCurrency, String toCurrency) {
-    if (fromCurrency == toCurrency) return 1.0;
-    final customKey = '${fromCurrency}_$toCurrency';
-    if (customExchangeRates.containsKey(customKey)) {
-      return customExchangeRates[customKey]!;
-    }
-    // Use default rate from models
-    final from = currencyByCode(fromCurrency);
-    final to = currencyByCode(toCurrency);
-    return from.rateToUSD / to.rateToUSD;
-  }
   
-  Future<void> setCustomExchangeRate(String from, String to, double rate) async {
-    await DB.setExchangeRate(from, to, rate);
-    customExchangeRates['${from}_$to'] = rate;
+  // ── Exchange Rates ──────────────────────────────────────
+  Future<void> setCustomExchangeRate(String fromCurrency, String toCurrency, double rate) async {
+    final key = '${fromCurrency}_$toCurrency';
+    customExchangeRates[key] = rate;
+    await DB.saveExchangeRate(fromCurrency, toCurrency, rate);
     notifyListeners();
   }
   
-  Future<void> removeCustomExchangeRate(String from, String to) async {
-    await DB.deleteExchangeRate(from, to);
-    customExchangeRates.remove('${from}_$to');
+  Future<void> removeCustomExchangeRate(String fromCurrency, String toCurrency) async {
+    final key = '${fromCurrency}_$toCurrency';
+    customExchangeRates.remove(key);
+    await DB.deleteExchangeRate(fromCurrency, toCurrency);
     notifyListeners();
   }
   
-  Future<void> resetAllExchangeRates() async {
-    await DB.clearExchangeRates();
-    customExchangeRates.clear();
-    notifyListeners();
+  double? getCustomRate(String fromCurrency, String toCurrency) {
+    final key = '${fromCurrency}_$toCurrency';
+    return customExchangeRates[key];
   }
   
-  bool hasCustomRate(String from, String to) {
-    return customExchangeRates.containsKey('${from}_$to');
-  }
+  List<MapEntry<String, double>> get allCustomRates => customExchangeRates.entries.toList();
 
   // ── Helpers ───────────────────────────────────────────
   double spentForCategory(String catId) =>
       monthlyTransactions.where((t) => t.type == TransactionType.expense && t.categoryId == catId)
-          .fold(0, (s, t) => s + t.amount);
+          .fold(0.0, (s, t) => s + convertToMainCurrency(t.amount, t.currency));
 }

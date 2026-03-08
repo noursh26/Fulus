@@ -228,7 +228,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     final data = List.generate(months.clamp(1, 12), (i) {
       final m = DateTime(now.year, now.month - (months - 1 - i));
       final txs = p.transactions.where((t) => t.date.month == m.month && t.date.year == m.year);
-      final exp = txs.where((t) => t.type == TransactionType.expense).fold(0.0, (s, t) => s + t.amount);
+      final exp = txs.where((t) => t.type == TransactionType.expense)
+          .fold(0.0, (s, t) => s + p.convertToMainCurrency(t.amount, t.currency));
       return FlSpot(i.toDouble(), exp);
     });
 

@@ -120,8 +120,10 @@ class _BarChart extends StatelessWidget {
     final data = List.generate(6, (i) {
       final m = DateTime(now.year, now.month - 5 + i);
       final txs = p.transactions.where((t) => t.date.month == m.month && t.date.year == m.year);
-      final inc = txs.where((t) => t.type == TransactionType.income).fold(0.0, (s, t) => s + t.amount);
-      final exp = txs.where((t) => t.type == TransactionType.expense).fold(0.0, (s, t) => s + t.amount);
+      final inc = txs.where((t) => t.type == TransactionType.income)
+          .fold(0.0, (s, t) => s + p.convertToMainCurrency(t.amount, t.currency));
+      final exp = txs.where((t) => t.type == TransactionType.expense)
+          .fold(0.0, (s, t) => s + p.convertToMainCurrency(t.amount, t.currency));
       return (month: m, income: inc, expense: exp);
     });
 

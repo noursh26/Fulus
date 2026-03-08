@@ -141,36 +141,47 @@ class DB {
   static Future<void> insertTransfer(m.Transfer t) async =>
       (await instance).insert('transfers', t.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
 
-  // ── Exchange Rates ─────────────────────────────────────
-  static Future<Map<String, double>> getExchangeRates() async {
+  // ── Exchange Rates ──────────────────────────────────────
+  static Future<Map<String, double>> getCustomExchangeRates() async {
     final db = await instance;
     final maps = await db.query('exchange_rates');
-    final rates = <String, double>{};
-    for (var m in maps) {
-      final key = '${m['fromCurrency']}_${m['toCurrency']}';
-      rates[key] = (m['rate'] as num).toDouble();
+    final result = <String, double>{};
+    for (final map in maps) {
+      final key = '${map['fromCurrency']}_${map['toCurrency']}';
+      result[key] = (map['rate'] as num).toDouble();
     }
-    return rates;
+    return result;
   }
-  
-  static Future<void> setExchangeRate(String from, String to, double rate) async {
+
+  static Future<void> saveExchangeRate(String fromCurrency, String toCurrency, double rate) async {
     final db = await instance;
+    final id = '${fromCurrency}_$toCurrency';
     await db.insert('exchange_rates', {
-      'id': '${from}_$to',
-      'fromCurrency': from,
-      'toCurrency': to,
+      'id': id,
+      'fromCurrency': fromCurrency,
+      'toCurrency': toCurrency,
       'rate': rate,
       'updatedAt': DateTime.now().millisecondsSinceEpoch,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
-  
-  static Future<void> deleteExchangeRate(String from, String to) async {
+
+  static Future<void> deleteExchangeRate(String fromCurrency, String toCurrency) async {
     final db = await instance;
-    await db.delete('exchange_rates', where: 'id=?', whereArgs: ['${from}_$to']);
+    final id = '${fromCurrency}_$toCurrency';
+    await db.delete('exchange_rates', where: 'id=?', whereArgs: [id]);
   }
-  
-  static Future<void> clearExchangeRates() async {
+
+  // ── Settings ────────────────────────────────────────────
+  static Future<String?> getSetting(String key) async {
     final db = await instance;
-    await db.delete('exchange_rates');
+    final maps = await db.query('settings', where: 'key=?', whereArgs: [key]);
+    if (maps.isEmpty) return null;
+    return maps.first['value'] as String?;
+  }
+
+  static Future<void> saveSetting(String key, String value) async {
+    final db = await instance;
+    await db.insert('settings', {'key': key, 'value': value}, 
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 }

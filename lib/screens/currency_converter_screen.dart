@@ -2,7 +2,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
 import '../models/models.dart';
+import '../providers/app_provider.dart';
 import '../theme/app_theme.dart';
 
 class CurrencyConverterScreen extends StatefulWidget {
@@ -32,8 +34,10 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
 
   void _calculate() {
     final amount = double.tryParse(_amountCtrl.text) ?? 0;
+    final p = context.read<AppProvider>();
+    final rate = p.getExchangeRate(_fromCurrency.code, _toCurrency.code);
     setState(() {
-      _result = convertCurrency(amount, _fromCurrency.code, _toCurrency.code);
+      _result = amount * rate;
     });
   }
 
@@ -114,22 +118,42 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
             const SizedBox(height: 32),
 
             // Exchange Rate Info
-            _GlassCard(
-              child: Column(
-                children: [
-                  _RateRow(
-                    from: _fromCurrency,
-                    to: _toCurrency,
-                    rate: _toCurrency.rateToUSD / _fromCurrency.rateToUSD,
+            Builder(
+              builder: (context) {
+                final p = context.watch<AppProvider>();
+                final rate1 = p.getExchangeRate(_fromCurrency.code, _toCurrency.code);
+                final rate2 = p.getExchangeRate(_toCurrency.code, _fromCurrency.code);
+                final hasCustomRate = p.getCustomRate(_fromCurrency.code, _toCurrency.code) != null ||
+                    p.getCustomRate(_toCurrency.code, _fromCurrency.code) != null;
+                return _GlassCard(
+                  child: Column(
+                    children: [
+                      _RateRow(
+                        from: _fromCurrency,
+                        to: _toCurrency,
+                        rate: rate1,
+                      ),
+                      const Divider(color: Colors.white12, height: 24),
+                      _RateRow(
+                        from: _toCurrency,
+                        to: _fromCurrency,
+                        rate: rate2,
+                      ),
+                      if (hasCustomRate) ...[
+                        const Divider(color: Colors.white12, height: 24),
+                        Row(
+                          children: [
+                            Icon(Icons.info_outline_rounded, size: 14, color: AppTheme.gold),
+                            const SizedBox(width: 8),
+                            Text('يستخدم سعر صرف مخصص', 
+                              style: TextStyle(fontSize: 11, color: AppTheme.gold)),
+                          ],
+                        ),
+                      ],
+                    ],
                   ),
-                  const Divider(color: Colors.white12, height: 24),
-                  _RateRow(
-                    from: _toCurrency,
-                    to: _fromCurrency,
-                    rate: _fromCurrency.rateToUSD / _toCurrency.rateToUSD,
-                  ),
-                ],
-              ),
+                );
+              },
             ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.1),
 
             const SizedBox(height: 24),
